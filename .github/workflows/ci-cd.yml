@@ -1,0 +1,55 @@
+name: Flask CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+  release:
+    types: [published]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest tests/
+
+  deploy-staging:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/staging' && success()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to Staging
+        run: |
+          echo "Deploying to Staging environment..."
+          # Add your staging deploy commands here
+
+  deploy-production:
+    needs: build-and-test
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to Production
+        run: |
+          echo "Deploying to Production environment..."
+          # Add your production deploy commands here
