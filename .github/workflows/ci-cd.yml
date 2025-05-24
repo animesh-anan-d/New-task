@@ -26,7 +26,9 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run tests
-        run: pytest tests/
+          env:
+            PYTHONPATH: ${{ github.workspace }}
+          run: pytest tests/
 
   deploy-staging:
     needs: build-and-test
