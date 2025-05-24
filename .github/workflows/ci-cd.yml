@@ -3,14 +3,14 @@ name: Flask CI/CD Pipeline
 on:
   push:
     branches:
-      - main
-      - staging
+      - staging          # Run tests and deploy to staging on pushes to staging branch
   release:
-    types: [published]
+    types: [created]      # Run deploy to production when a release is created/tagged
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -25,33 +25,48 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run tests
-          env:
-            PYTHONPATH: ${{ github.workspace }}
-          run: pytest tests/
+      - name: Run tests with pytest
+        env:
+          PYTHONPATH: ${{ github.workspace }}   # Ensure Python can find your app module
+        run: |
+          pytest tests/
 
   deploy-staging:
     needs: build-and-test
-    if: github.ref == 'refs/heads/staging' && success()
+    if: github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Add your deployment steps here for staging environment
+      # For example, SSH to server or deploy to cloud
+
       - name: Deploy to Staging
         run: |
-          echo "Deploying to Staging environment..."
-          # Add your staging deploy commands here
+          echo "Deploying to staging environment..."
+          # Add your deployment commands here
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          OTHER_SECRET: ${{ secrets.OTHER_SECRET }}
 
   deploy-production:
     needs: build-and-test
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Add your deployment steps here for production environment
+      # For example, SSH to prod server or cloud deploy
+
       - name: Deploy to Production
         run: |
-          echo "Deploying to Production environment..."
-          # Add your production deploy commands here
+          echo "Deploying to production environment..."
+          # Add your deployment commands here
+        env:
+          PROD_DEPLOY_KEY: ${{ secrets.PROD_DEPLOY_KEY }}
+          PROD_OTHER_SECRET: ${{ secrets.PROD_OTHER_SECRET }}
